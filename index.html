@@ -6,10 +6,11 @@
         <link rel="stylesheet" href="./style.css">
     </head>
     <body>
-        <video id="video" autoplay/></video>
+        <video id="video" autoplay playsInline muted/></video>
         <canvas id="canvas"></canvas>
 
-        
-        <script src="./script.js"/></script>
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.13.3"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@0.2.3"></script>
+        <script src="./static/js/main.js" type="module"/></script>
     </body>
 </html>
