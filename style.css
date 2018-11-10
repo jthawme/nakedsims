@@ -1,0 +1,11 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+
+video {
+    position: absolute;
+
+    transform: scale(0);
+    pointer-events: none;
+}
