@@ -3,11 +3,39 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <title>Webcam</title>
-        <link rel="stylesheet" href="./style.css">
+        <link rel="stylesheet" href="./static/css/style.css">
     </head>
     <body>
         <video id="video" autoplay playsInline muted/></video>
         <canvas id="canvas"></canvas>
+
+        <div class="controls">
+            <label>
+                <span>Mosaic size</span><br/>
+                <input type="range" min="20" max="50" id="tile_change">
+            </label>
+            <label>
+                <span>Plumbob distance</span><br/>
+                <input type="range" min="0.5" max="2.5" step="0.1" id="plumbob_change">
+            </label>
+            <label>
+                <span>Controls</span><br/>
+                <input type="checkbox" id="controls_checkbox" checked>
+            </label>
+        </div>
+
+        <footer>
+            <div>
+                Made by <a href="https://twitter.com/jthawme" target="_blank">@jthawme</a>
+            </div>
+            <div>
+                See the code on <a href="https://github.com/jthawme" target="_blank">Github</a>
+            </div>
+        </footer>
+
+        <noscript>
+            <div class="error">This site requires, javascript and a camera/webcam to work. Looks like you don't have one of them ):</div>
+        </noscript>
 
         <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.13.3"></script>
         <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@0.2.3"></script>

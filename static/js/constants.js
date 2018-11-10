@@ -20,7 +20,7 @@ export const KEYPOINTS = {
 
 export const WIDTH = 640;
 export const HEIGHT = 480;
-export const TILE_WIDTH = WIDTH / 20;
+export const TILE_WIDTH = 30;
 export const TILE_HEIGHT = TILE_WIDTH;
 
 export const MAGIC_FOREHEAD = 1.5;

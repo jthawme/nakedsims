@@ -15,3 +15,9 @@ export function calculateDistance(x1, y1, x2, y2) {
 export function roundTo(num, nearest) {
   return Math.ceil(num / nearest) * nearest;
 }
+
+export function httpsRedirect() {
+  if (location.protocol != 'https:' && location.hostname !== 'localhost') {
+    location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
+  }
+}

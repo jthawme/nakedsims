@@ -1,8 +1,10 @@
 'use strict';
 
 import { KEYPOINTS, WIDTH, HEIGHT, TILE_WIDTH, TILE_HEIGHT, MAGIC_FOREHEAD } from './constants.js';
-import { calculateAngle, calculateDistance, roundTo } from './utils.js';
+import { calculateAngle, calculateDistance, roundTo, httpsRedirect } from './utils.js';
 import Updater from './updater.js';
+
+httpsRedirect();
 
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
@@ -10,6 +12,10 @@ const ctx = canvas.getContext('2d');
 let streaming = false;
 
 let WID, HEI;
+
+let tilewid = TILE_WIDTH;
+let tilehei = TILE_HEIGHT;
+let forehead = MAGIC_FOREHEAD;
 
 const UPDATERS = [
   new Updater(),
@@ -70,26 +76,34 @@ function loadModel() {
     });
 }
 
+/**
+ * Method to draw the pixelation
+ *
+ * @param {Array} topLeft
+ * @param {Array} bottomRight
+ * @param {Object} imgData
+ */
 function drawMosaic([x1, y1], [x2, y2], imgData) {
     let wid = x2 - x1;
     let hei = y2 - y1;
 
-    let xAmt = Math.round(wid / TILE_WIDTH);
-    let yAmt = Math.round(hei / TILE_HEIGHT);
+    let xAmt = Math.round(wid / tilewid);
+    let yAmt = Math.round(hei / tilehei);
 
     ctx.save();
     ctx.translate(x1, y1);
     for (let x = 0; x < xAmt; x++) {
-        for (let y = 0; y < yAmt; y++) {
-            const pxl = (((x * TILE_WIDTH) + (TILE_WIDTH * 0.5)) + ((y * TILE_HEIGHT) + (TILE_HEIGHT * 0.5)) * imgData.width) * 4;
+      for (let y = 0; y < yAmt; y++) {
+        // Work out the pixel index for the start of the tile
+        const pxl = (((x * tilewid) + (tilewid * 0.5)) + ((y * tilehei) + (tilehei * 0.5)) * imgData.width) * 4;
 
-            ctx.save();
-            ctx.translate(x * TILE_WIDTH, y * TILE_HEIGHT);
+        ctx.save();
+        ctx.translate(x * tilewid, y * tilehei);
 
-            drawIndividual(TILE_WIDTH, TILE_HEIGHT, imgData.data.slice(pxl, pxl + 4));
+        drawIndividual(tilewid, tilehei, imgData.data.slice(pxl, pxl + 4));
 
-            ctx.restore();
-        }
+        ctx.restore();
+      }
     }
     ctx.restore();
 }
@@ -166,7 +180,7 @@ function drawHead() {
     ctx.drawImage(
       plumbob,
       0 - (distance / 2),
-      0 - (newHei + (noseToEyes * MAGIC_FOREHEAD)) + (bobbing * 5),
+      0 - (newHei + (noseToEyes * forehead)) + (bobbing * 5),
       distance,
       newHei
     );
@@ -198,20 +212,20 @@ function drawBody() {
   let bottomRight;
   if (leftHip.score > 0.3 && rightHip.score > 0.3) {
     topLeft = [
-      Math.min(rsx, rhx) - (TILE_WIDTH * 1),
-      Math.min(lsy, rsy) - (TILE_HEIGHT * 0.5)
+      Math.min(rsx, rhx) - (tilewid * 1),
+      Math.min(lsy, rsy) - (tilehei * 0.5)
     ];
     bottomRight = [
-        Math.max(lhx, lsx) + (TILE_WIDTH * 1),
-        Math.max(lhy, rhy) + (TILE_HEIGHT * 4)
+        Math.max(lhx, lsx) + (tilewid * 1),
+        Math.max(lhy, rhy) + (tilehei * 4)
     ];
   } else {
     topLeft = [
-      rsx - (TILE_WIDTH * 1),
-      Math.min(lsy, rsy) - (TILE_HEIGHT * 0.5)
+      rsx - (tilewid * 1),
+      Math.min(lsy, rsy) - (tilehei * 0.5)
     ];
     bottomRight = [
-      lsx + (TILE_WIDTH * 1),
+      lsx + (tilewid * 1),
       HEI
     ];
   }
@@ -239,10 +253,10 @@ function modelLoop() {
 
         // Update the values for the desired keypoints
         let it = ['LEFT_EYE', 'RIGHT_EYE', 'NOSE'];
-        it.forEach(i => {
-          UPDATERS[UKEYS[`${i}_X`]].setValue(_pose.keypoints[KEYPOINTS[i]].position.x, 10);
-          UPDATERS[UKEYS[`${i}_Y`]].setValue(_pose.keypoints[KEYPOINTS[i]].position.y, 10);
-        });
+        for (let i = 0; i < it.length; i++) {
+          UPDATERS[UKEYS[`${it[i]}_X`]].setValue(_pose.keypoints[KEYPOINTS[it[i]]].position.x, 10);
+          UPDATERS[UKEYS[`${it[i]}_Y`]].setValue(_pose.keypoints[KEYPOINTS[it[i]]].position.y, 10);
+        };
       });
   } else {
     setTimeout(modelLoop, 150);
@@ -292,6 +306,42 @@ function requestWebcam() {
     .then(stream => {
       video.srcObject = stream;
       loop();
+    })
+    .catch(err => {
+      fallbackError();
     });
+
+  if (!('mediaDevices' in navigator)) {
+    fallbackError();
+  }
 }
 requestWebcam();
+
+function fallbackError() {
+  let el = document.createElement('DIV');
+  el.setAttribute('class', 'error');
+  el.innerText = "This site requires, javascript and a camera/webcam to work. Looks like you don't have one of them ):";
+  document.body.appendChild(el);
+}
+
+
+const controls = document.querySelector('.controls');
+const tileChange = document.getElementById('tile_change');
+const plumbobChange = document.getElementById('plumbob_change');
+const controlsCheckbox = document.getElementById('controls_checkbox');
+
+tileChange.value = TILE_WIDTH;
+tileChange.addEventListener('change', (e) => {
+  tilewid = roundTo(parseInt(e.target.value, 10), 2);
+  tilehei = roundTo(parseInt(e.target.value, 10), 2);
+}, false);
+
+
+plumbobChange.value = MAGIC_FOREHEAD;
+plumbobChange.addEventListener('change', (e) => {
+  forehead = parseFloat(e.target.value);
+}, false);
+
+controlsCheckbox.addEventListener('change', (e) => {
+  controls.classList.toggle('hide', !e.target.checked);
+}, false);
